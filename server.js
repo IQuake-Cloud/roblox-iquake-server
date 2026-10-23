@@ -13,7 +13,7 @@ const MAX_LNG = 150.0;
 // ▼▼▼【位置と縦横の広がり具合の微調整パラメータ】▼▼▼
 const X_OFFSET = -0.075; // 全体を「左」へ動かす（マイナス）
 const Y_OFFSET = 0.065;  // 全体を「下」へ動かす（プラス）
-const X_SCALE  = 0.70;   // 横方向への引き伸ばし倍率（1.0より大きくすると横に広がります）
+const X_SCALE  = 0.76;   // 横方向への引き伸ばし倍率（1.0より大きくすると横に広がります）
 const Y_SCALE  = 1.40;   // 縦方向への引き伸ばし倍率（1.0より大きくすると縦に伸びます）
 
 function convertLatLonToPosition(lat, lon) {
