@@ -16,11 +16,10 @@ const MAX_LAT = 50.0;
 const MIN_LNG = 118.0;
 const MAX_LNG = 150.0;
 
-// ▼▼▼【位置と縦横の広がり具合の微調整パラメータ】▼▼▼
-const X_OFFSET = -0.075; // 全体を「左」へ動かす（マイナス）
-const Y_OFFSET = 0.065;  // 全体を「下」へ動かす（プラス）
-const X_SCALE  = 0.76;   // 横方向への引き伸ばし倍率
-const Y_SCALE  = 1.40;   // 縦方向への引き伸ばし倍率
+const X_OFFSET = -0.075;
+const Y_OFFSET = 0.065;
+const X_SCALE  = 0.76;
+const Y_SCALE  = 1.40;
 
 function convertLatLonToPosition(lat, lon) {
     let normalizedX = (lon - MIN_LNG) / (MAX_LNG - MIN_LNG);
@@ -40,17 +39,8 @@ let stations = [];
 try {
     const csvPath = path.join(__dirname, 'stations.csv');
     if (fs.existsSync(csvPath)) {
-        const buffer = fs.readFileSync(csvPath);
-        
-        let rawContent = "";
-        try {
-            const decoderShiftJIS = new TextDecoder('shift-jis');
-            rawContent = decoderShiftJIS.decode(buffer);
-        } catch (e) {
-            const decoderUTF8 = new TextDecoder('utf-8');
-            rawContent = decoderUTF8.decode(buffer);
-        }
-
+        // utf-8 または通常読み込みで安全に処理
+        const rawContent = fs.readFileSync(csvPath, 'utf8');
         const lines = rawContent.split(/\r?\n/);
         
         lines.forEach((line) => {
@@ -59,10 +49,10 @@ try {
             const cols = line.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
             if (cols.length < 6) return;
 
-            const code = cols[1]; // 観測点コード (例: ABSH01)
-            const name = cols[2]; // 観測点名 (例: 雄武)
-            const lat = parseFloat(cols[4]); // 緯度
-            const lon = parseFloat(cols[5]); // 経度
+            const code = cols[1];
+            const name = cols[2];
+            const lat = parseFloat(cols[4]);
+            const lon = parseFloat(cols[5]);
 
             if (code && !isNaN(lat) && !isNaN(lon)) {
                 const pos = convertLatLonToPosition(lat, lon);
@@ -73,7 +63,7 @@ try {
                     lon: lon,
                     x: parseFloat(pos.x.toFixed(4)),
                     y: parseFloat(pos.y.toFixed(4)),
-                    scale: 0 // 初期状態の震度スケール
+                    scale: 0
                 });
             }
         });
@@ -141,9 +131,6 @@ async function fetchEarthquakeData() {
                 time: timeStr
             };
 
-            // 各観測点のリアルタイム震度（scale）を更新するロジック（必要に応じて各観測点のscaleに代入）
-            // ※ P2Pの各地点の揺れデータ（stations配列など）がある場合はここに反映処理を追加できます
-
             console.log(`[地震情報更新] ${issueType} - 震源: ${epicenterName}, 予想震度: ${intensityStr}`);
         }
     } catch (error) {
@@ -166,26 +153,21 @@ function convertScaleToString(scale) {
     }
 }
 
-// 10秒ごとにAPIを自動ポーリング
 setInterval(fetchEarthquakeData, 10000);
 fetchEarthquakeData();
 
 // ==========================================
 // 4. APIエンドポイントの設定
 // ==========================================
-
-// トップページ確認用
 app.get('/', (req, res) => {
     res.send("IQuake-Cloud Server is running and active!");
 });
 
-// 観測点リスト（座標・コード付き）を返すAPI
 app.get('/api/stations', (req, res) => {
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
     res.json(stations);
 });
 
-// 最新の緊急地震速報（EEW）情報を返すAPI
 app.get('/api/eew', (req, res) => {
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
     res.json(latestEEW);

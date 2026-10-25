@@ -1,13 +1,13 @@
 {
   "name": "roblox-iquake-server",
   "version": "1.0.0",
-  "description": "JQuake style seismic data relay server for Roblox",
+  "description": "Real-time earthquake monitoring server for Roblox",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
-    "express": "^4.19.2",
-    "ws": "^8.16.0"
+    "axios": "^1.6.8",
+    "express": "^4.19.2"
   }
 }
