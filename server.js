@@ -16,10 +16,10 @@ const MAX_LAT = 50.0;
 const MIN_LNG = 118.0;
 const MAX_LNG = 150.0;
 
-const X_OFFSET = -0.075;
-const Y_OFFSET = 0.065;
-const X_SCALE  = 0.76;
-const Y_SCALE  = 1.40;
+const X_OFFSET = 0.0;
+const Y_OFFSET = 0.0;
+const X_SCALE  = 0;
+const Y_SCALE  = 0;
 
 function convertLatLonToPosition(lat, lon) {
     let normalizedX = (lon - MIN_LNG) / (MAX_LNG - MIN_LNG);
