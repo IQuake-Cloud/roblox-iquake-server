@@ -9,35 +9,25 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 
 // ==========================================
-// 1. 16:9 広範囲マップ用（実距離・縦横比補正込み）
+// 1. 16:9 広範囲マップ用（位置・横伸び・縦伸び補正込み）
 // ==========================================
 const MIN_LAT = 20.0;
 const MAX_LAT = 50.0;
 const MIN_LNG = 118.0;
 const MAX_LNG = 150.0;
 
-// ▼▼▼【位置と縦横の広がり具合の微調整パラメータ】▼▼▼
 const X_OFFSET = 0.0;
 const Y_OFFSET = 0.0;
-const X_SCALE  = 1.0;
+const X_SCALE  = 0.70;
 const Y_SCALE  = 1.0;
 
 function convertLatLonToPosition(lat, lon) {
-    const centerLat = (MIN_LAT + MAX_LAT) / 2; // 35.0
-    const latRad = (lat * Math.PI) / 180;
-    const centerRad = (centerLat * Math.PI) / 180;
-
-    const lonDistanceRatio = Math.cos(latRad) / Math.cos(centerRad);
-
-    const latSpan = MAX_LAT - MIN_LAT; // 30.0
-    const lonSpan = MAX_LNG - MIN_LNG; // 32.0
-
-    const normX = (lon - MIN_LNG) / lonSpan;
-    const normY = 1.0 - (lat - MIN_LAT) / latSpan;
-
-    const x = 0.5 + (normX - 0.5) * lonDistanceRatio * (lonSpan / latSpan) * 0.75 * X_SCALE + X_OFFSET;
-    const y = 0.5 + (normY - 0.5) * Y_SCALE + Y_OFFSET;
-
+    let normalizedX = (lon - MIN_LNG) / (MAX_LNG - MIN_LNG);
+    let x = 0.5 + (normalizedX - 0.5) * X_SCALE + X_OFFSET;
+    
+    let normalizedY = 1.0 - (lat - MIN_LAT) / (MAX_LAT - MIN_LAT);
+    let y = 0.5 + (normalizedY - 0.5) * Y_SCALE + Y_OFFSET;
+    
     return { x, y };
 }
 
@@ -49,19 +39,20 @@ let stations = [];
 try {
     const csvPath = path.join(__dirname, 'stations.csv');
     if (fs.existsSync(csvPath)) {
+        // utf-8 または通常読み込みで安全に処理
         const rawContent = fs.readFileSync(csvPath, 'utf8');
         const lines = rawContent.split(/\r?\n/);
-
+        
         lines.forEach((line) => {
             if (!line.trim() || line.startsWith('#')) return;
-
+            
             const cols = line.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
             if (cols.length < 6) return;
 
-            const code = cols[1]; // 観測点コード (例: ABSH01)
-            const name = cols[2]; // 観測点名 (例: 雄武)
-            const lat = parseFloat(cols[4]); // 緯度
-            const lon = parseFloat(cols[5]); // 経度
+            const code = cols[1];
+            const name = cols[2];
+            const lat = parseFloat(cols[4]);
+            const lon = parseFloat(cols[5]);
 
             if (code && !isNaN(lat) && !isNaN(lon)) {
                 const pos = convertLatLonToPosition(lat, lon);
@@ -101,9 +92,9 @@ async function fetchEarthquakeData() {
         const response = await axios.get('https://api.p2pquake.net/v2/history?codes=551,552&limit=1', {
             timeout: 5000
         });
-
+        
         const latestData = response.data[0];
-
+        
         if (latestData) {
             let issueType = "Forecast";
             if (latestData.issue && latestData.issue.type === "EmergencyWarning") {
