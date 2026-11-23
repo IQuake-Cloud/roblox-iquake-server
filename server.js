@@ -21,22 +21,21 @@ const X_OFFSET = 0.0;
 const Y_OFFSET = 0.0;
 const X_SCALE  = 1.0;
 const Y_SCALE  = 1.0;
-const ASPECT_FACTOR = 1.35; // 狭める場合は小さく（例: 1.15）、広げる場合は大きく（例: 1.5）
 
 function convertLatLonToPosition(lat, lon) {
     const centerLat = (MIN_LAT + MAX_LAT) / 2; // 35.0
     const latRad = (lat * Math.PI) / 180;
     const centerRad = (centerLat * Math.PI) / 180;
+
     const lonDistanceRatio = Math.cos(latRad) / Math.cos(centerRad);
 
-    const latSpan = MAX_LAT - MIN_LAT; // 30
-    const lonSpan = MAX_LNG - MIN_LNG; // 32
-    const aspectFix = (latSpan / lonSpan) * (9 / 16) * ASPECT_FACTOR;
+    const latSpan = MAX_LAT - MIN_LAT; // 30.0
+    const lonSpan = MAX_LNG - MIN_LNG; // 32.0
 
     const normX = (lon - MIN_LNG) / lonSpan;
     const normY = 1.0 - (lat - MIN_LAT) / latSpan;
 
-    const x = 0.5 + (normX - 0.5) * lonDistanceRatio * aspectFix * X_SCALE + X_OFFSET;
+    const x = 0.5 + (normX - 0.5) * lonDistanceRatio * (lonSpan / latSpan) * 0.75 * X_SCALE + X_OFFSET;
     const y = 0.5 + (normY - 0.5) * Y_SCALE + Y_OFFSET;
 
     return { x, y };
